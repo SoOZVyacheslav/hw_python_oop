@@ -1,5 +1,5 @@
-from dataclasses import dataclass, asdict
-from typing import Union
+from dataclasses import asdict, dataclass
+from typing import Type
 
 
 @dataclass
@@ -11,15 +11,15 @@ class InfoMessage:
     distance: float
     speed: float
     calories: float
+    message: str = ('Тип тренировки: {training_type}; '
+                    'Длительность: {duration:.3f} ч.; '
+                    'Дистанция: {distance:.3f} км; '
+                    'Ср. скорость: {speed:.3f} км/ч; '
+                    'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
         """Вывод сообщения."""
-        message: str = ('Тип тренировки: {training_type}; '
-                        'Длительность: {duration:.3f} ч.; '
-                        'Дистанция: {distance:.3f} км; '
-                        'Ср. скорость: {speed:.3f} км/ч; '
-                        'Потрачено ккал: {calories:.3f}.')
-        return message.format(**asdict(self))
+        return self.message.format(**asdict(self))
 
 
 class Training:
@@ -61,7 +61,9 @@ class Running(Training):
     CALORIES_MEAN_SPEED_MULTIPLIER: int = 18
     CALORIES_MEAN_SPEED_SHIFT: float = 1.79
 
-    def __init__(self, action: int, duration: float, weight: float,) -> None:
+    def __init__(self, action: int,
+                 duration: float,
+                 weight: float,) -> None:
         super().__init__(action, duration, weight)
 
     def get_spent_calories(self) -> float:
@@ -122,13 +124,13 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: list) -> Training:
     """Прочитать данные полученные от датчиков."""
-    command: dict[str, type[Union[Swimming, Running, SportsWalking]]] = {
+    command: dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
     }
     if workout_type not in command:
-        print('Неверный данные')
+        raise KeyError('Неверный данные')
     return command[workout_type](*data)
 
 
